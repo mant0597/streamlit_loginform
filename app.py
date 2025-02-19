@@ -16,11 +16,15 @@ def load_users():
     return []
 
 def save_new_user(username, password):
-    hashed_password = hash_password(password)
     users = load_users()
+    for user in users:
+        if user['username'] == username:
+            return False
+    hashed_password = hash_password(password)
     users.append({'username': username, 'password': hashed_password})
     with open("user.yaml", "w") as file:
         yaml.dump({'users': users}, file)
+    return True
 
 def check_credentials(username, password):
     users = load_users()
@@ -51,7 +55,6 @@ def main():
             username = st.text_input("Username", autocomplete="off")
             password = st.text_input("Password", type="password", autocomplete="off")
 
-
             if st.button("Login"):
                 if check_credentials(username, password):
                     st.session_state.logged_in = True
@@ -69,8 +72,10 @@ def main():
 
             if st.button("Sign Up"):
                 if new_password == confirm_password:
-                    save_new_user(new_username, new_password)
-                    st.success("Account created successfully! You can now log in.")
+                    if save_new_user(new_username, new_password):
+                        st.success("Account created successfully! You can now log in.")
+                    else:
+                        st.error("Username already exists.")
                 else:
                     st.error("Passwords do not match.")
     else:
